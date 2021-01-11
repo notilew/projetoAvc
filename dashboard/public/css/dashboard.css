@@ -1,26 +1,23 @@
 /* CORPO */
-input:focus{
-  border: none;
-}
-
 body {
-  font-family: 'Museosans 2', sans-serif;
+  font-family: 'Museosans 300', sans-serif;
   color: #DCE6EF;
   background-color: #151A20;
 }
 
-div {
-  margin: 0 0 20px 0;
-}
-
 h2 {
   font-weight: bold;
-  font-style: italic;
   color: #EAEFF5;
 }
 
 h4 {
+  font-family: 'Museosans 2', sans-serif;
   color: #6B747B;
+}
+
+h5 {
+  font-weight: bold;
+  color: #4c5c6c;
 }
 
 p {
@@ -32,6 +29,24 @@ hr {
   background-color: #363d45;
   height: 2px;
   width: 60%;
+}
+
+div {
+  margin: 0 0 20px 0;
+}
+
+input:focus{
+  border: none;
+}
+
+/* AVANCOINS */
+.avancoins {
+  padding-left: 2.5%;
+  padding-top: 6%;
+}
+
+#avancoins-margem {
+  margin-left: -20px;
 }
 
 /* BOOTSTRAP */
@@ -58,12 +73,9 @@ hr {
   padding: 0 0 0 0;
 }
 
-.fa-calendar {
-    color: #009f45;
-}
-
 .form-control {
-  padding: 0 0 0 0;
+  padding: 0 55px 0 0;
+  margin: 3px 0 0 0;
 }
 
 .container-fluid {
@@ -80,16 +92,9 @@ hr {
 }
 
 /* OUTRAS */
-
-
-#nome-time {
-  color: #354044;
-}
-
 #hall-da-fama {
   font-weight: bold;
   font-style: italic;
-  color: #6B757F;
 }
 
 #trofeu {
@@ -98,7 +103,7 @@ hr {
 
 .bloco-pessoal {
   position: relative;
-  top: -130px;
+  top: -90px;
 }
 
 .tma {
@@ -116,6 +121,15 @@ hr {
 
 .info-gerais {
   margin: 0 0 0 0;
+}
+
+.input-group, .input-daterange {
+  margin: 0 0 0 0;
+}
+
+.fa-calendar {
+  color: #009f45;
+  padding: 0 30px 0 0;
 }
 
 @media screen and (max-width: 1280px) {
@@ -166,7 +180,6 @@ input[type="text"] {
 }
 
 .calendario {
-  padding: 0 0 0 5px;
   margin: 3px 0 0 0;
 }
 

@@ -1,0 +1,52 @@
+@charset "UTF-8";
+
+body {	
+	font-family: 'Museosans 0', sans-serif;
+	background: url(../../img/store/others/fundo.png) no-repeat;
+	background-color: #000000;
+	background-size: 100% 30%;
+}
+
+h1 {
+	font-family: 'Museosans 1', sans-serif;
+	text-transform: uppercase;
+	color: #fff;
+}
+
+h4 {
+	font-family: 'Museosans 100', sans-serif;
+	padding-top: 2%;
+}
+
+#avancoins {	
+	margin-bottom: 1.5%;
+}
+
+.avancoins {
+	padding-left: 0.40%;  
+}
+
+.preco {
+	padding-top: 1%;
+	font-size: 1.5em;
+}
+
+.preco img {
+	vertical-align: middle;
+	width: 6%;
+	height: 6%;
+}
+
+.comprar {
+	padding-top: 1%;	
+}
+
+.comprar button {
+	font-family: 'Museosans 100', sans-serif;	
+	font-weight: bold;
+}
+
+.img-thumbnail {
+	width: 100%;
+	height: 100%;
+}

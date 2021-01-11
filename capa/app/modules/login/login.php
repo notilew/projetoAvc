@@ -1,30 +1,31 @@
 <?php
 
-# importando script de inicialização
-require '../../../init.php';
+/**
+ * responsável por realizar o login do usuário na aplicação
+ * @param - array com email, senha digitada pelo usuário e senha criptografada
+ * @param - array com o modelo para receber os dados do usuário
+ */
+function realizaLoginNaAplicacao($login, $usuario)
+{
+  # abrindo conexão
+  $db = abre_conexao();
 
-# verificando se existe requisição via método POST
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
-  $login = array();
-
-  # recuperando dados do formulário de login
-  $login['usuario'] = isset($_POST['login']['usuario']) ? $_POST['login']['usuario'] : '';
-  $login['senha']   = isset($_POST['login']['senha'])   ? $_POST['login']['senha']   : '';
-
-  # verificando se os dados do formulário estão vazios
-  if (empty($login['usuario']) || empty($login['senha'])) {
-
-    echo 'Informe o usuário e senha!';
-
-    exit();
-
-  }
-
-  # abrindo conexão com a base de dados
-  $conexao = abre_conexao();
+  $controle = null;
 
   # chamando função que irá consultar a base de dados
-  consultaDadosDoUsuario($conexao, $login);
+  $controle = consultaDadosDoUsuario($login, $usuario, $db);
+
+  # verificando se o usuário forneceu email e senha válidos
+  if ($controle) {
+    
+    # redirecionando usuário para a página home da aplicação
+    header('Location: ' . BASE_URL . 'public/views/schedule/agenda.php');
+
+  } else {
+
+    # redirecionando usuário para o formulário de login
+    header('Location: ' . FORM_LOGIN);
+
+  }
 
 }

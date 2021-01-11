@@ -2,6 +2,7 @@
 
   require '../../../init.php';
   require DIRETORIO_MODULES . 'profile/administrador.php';
+  require DIRETORIO_HELPERS . 'verifica.php';
 
   #chamando função que cria as opções com os nomes dos colaboradores para o select dinamicamente
   criaOpcoesComOsColaboradoresDoChat();
@@ -27,6 +28,8 @@
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>libs/bootstrap-4.0.0/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/fontes.css">
+  <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/administrador.css">
 </head>
 
 <body>
@@ -43,14 +46,14 @@
               <div class="form-group text-center">
                 <label for="usuario"><h2>Colaboradores</h2></label>
 
-                <select class="custom-select form-control" name="usuario">
+                <select class="custom-select form-control styled-select" name="usuario">
                   <?php echo $options; ?>
                 </select>
               </div>
 
               <div class="form-group">
                 <div class="text-right">
-                  <a href="<?php echo BASE_URL; ?>app/modules/logout/logout.php" class="badge badge-light">Deslogar</a>
+                  <!--<a href="<?php echo BASE_URL; ?>app/modules/logout/logout.php" class="badge badge-light">Deslogar</a>-->
                 </div>
               </div>
 

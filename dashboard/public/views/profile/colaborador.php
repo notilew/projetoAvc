@@ -7,8 +7,21 @@
   require DIRETORIO_HELPERS  . 'profile/init_colaborador.php';
   require DIRETORIO_MODULES  . 'graphics/graficos.php';
   require DIRETORIO_HELPERS  . 'graphics/init_graficos.php' ;
-
   require DIRETORIO_HELPERS  . 'verifica.php';
+  require DIRETORIO_MODULES  . 'avancoins/avancoins.php';
+
+?>
+
+<?php
+
+  # chamando função responsável por atualizar as ações diárias do colaborador no período atual
+  atualizaAcoesDiarias($_SESSION['colaborador']['id']);
+
+  # chamando função responsável por atualizar a quantidade de moedas na carteira do colaborador
+  atualizaCarteira($_SESSION['colaborador']['id']);
+
+  # chamando função responsável por retornar a quantidade atual de moedas do colaborador
+  $avancoins = retornaQuantidadeDeMoedasDaCarteira($_SESSION['colaborador']['id']);
 
 ?>
 
@@ -27,7 +40,6 @@
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/fontes.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/dashboard.css">
   <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/graficos.css">
-
 </head>
 
 <body>
@@ -57,16 +69,28 @@
                   echo $dashboard['pessoal']['nome'] . ' ' . $dashboard['pessoal']['sobrenome'];
                 ?>
                 </h2>
-              </div>
-            </div><!-- segunda coluna da linha -->
-
-            <div class="col-sm-12"><!-- terceira coluna da linha -->
-              <div class="text-center">
-                <h5 id="nome-time">
+                <h5>
                 <?php
                   echo '#' . $dashboard['pessoal']['time'];
                 ?>
                 </h5>
+              </div>
+            </div><!-- segunda coluna da linha -->
+
+            <div class="col-sm-6"><!-- terceira coluna da linha -->
+              <div class="text-right">
+                <p>
+                  <img src="<?php echo BASE_URL; ?>public/img/others/avancoins.png" alt="Moeda Avancoins">
+                </p>
+              </div>
+            </div>
+            <div class="col-sm-6" id="avancoins-margem">
+              <div class="text-left">
+                <p>
+                  <?php foreach ($avancoins as $avancoin) : ?>
+                    <img class="avancoins" src="<?php echo $avancoin; ?>" alt="Avancoins">
+                  <?php endforeach; ?>
+                </p>
               </div>
             </div><!-- terceira coluna da linha -->
 
@@ -135,24 +159,20 @@
 
           <div class="row"><!-- primeira linha da coluna 2 -->
             <div class="col-sm-12"><!-- primeira coluna da linha -->
+              <?php if ($_SESSION['usuario']['nivel'] == 2) : ?>
               <div class="text-right">
                 <p>
-                <?php if ($_SESSION['usuario']['nivel'] == 2) : ?>
-                  <a class="text-right btn btn-success btn-sm" href="<?php echo BASE_URL; ?>public/views/profile/administrador.php">Voltar</a>
-                <?php endif; ?>
-                  <a class="text-right btn btn-success btn-sm" href="<?php echo BASE_URL; ?>app/modules/logout/logout.php">Deslogar</a>
+                  <a class="text-right btn btn-success btn-sm" href="<?php echo BASE_URL; ?>public/views/profile/administrador.php">
+                    <i class="fa fa-arrow-circle-left" aria-hidden="true"></i> Página Anterior
+                  </a>
+                  <!--<a class="text-right btn btn-success btn-sm" href="<?php echo BASE_URL; ?>app/modules/logout/logout.php">Deslogar</a>-->
                 </p>
               </div>
+              <?php endif; ?>
             </div><!-- primeira coluna da linha -->
           </div><!-- primeira linha da coluna 2 -->
 
           <div class="row"><!-- segunda linha da coluna 2 -->
-            <div class="col-sm-6"><!-- primeira coluna da linha -->
-              <h2>Indicadores Chat</h2>
-            </div><!-- primeira coluna da linha -->
-          </div><!-- segunda linha da coluna 2 -->
-
-          <div class="row"><!-- terceira linha da coluna 2 -->
             <div class="col-sm-6"></div>
             <div class="col-sm-6"><!-- segunda coluna da linha -->
               <form class="form-inline" method="post">
@@ -160,15 +180,21 @@
                   <div class="input-group-addon">
                     <i class="fa fa-calendar" aria-hidden="true"></i><span class="calendario">De: </span>
                   </div>
-                    <input type="text" class="form-control" name="data-1" value="<?php echo $dashboard['periodo']['data_1']; ?>">
+                    <input type="text" class="form-control" id="data1" name="data-1" value="<?php echo $dashboard['periodo']['data_1']; ?>">
                   <div class="input-group-addon">
                     <i class="fa fa-calendar" aria-hidden="true"></i><span class="calendario">Até: </span>
                   </div>
-                    <input type="text" class="form-control" name="data-2" value="<?php echo $dashboard['periodo']['data_2']; ?>">
+                    <input type="text" class="form-control" id="data2" name="data-2" value="<?php echo $dashboard['periodo']['data_2']; ?>">
                     <button type="submit" class="btn btn-success"><i class="fa fa-search" aria-hidden="true"></i></button>
                 </div>
               </form>
             </div><!-- segunda coluna da linha -->
+          </div><!-- segunda linha da coluna 2 -->
+
+          <div class="row"><!-- terceira linha da coluna 2 -->
+            <div class="col-sm-6"><!-- primeira coluna da linha -->
+              <h2>Indicadores Chat</h2>
+            </div><!-- primeira coluna da linha -->
           </div><!-- terceira linha da coluna 2 -->
 
           <div class="row"><!-- quarta linha da coluna 2 -->
@@ -259,7 +285,7 @@
 
             <div class="col-sm-3"><!-- quarta coluna da linha -->
               <div class="text-left">
-                <p>Questionário</p>
+                <p id="questionario">Questionário</p>
                 <h1 class="resultados">
                 <?php
                   echo $dashboard['indicadores_chat']['percentual_questionario_respondido'] . '<span class="cor-cinza">%</span>';
@@ -368,49 +394,65 @@
           </div><!-- décima linha da coluna 2 -->
 
           <div class="clearfix"></div>
-                <div class="row"><!-- décima primeira linha da coluna 2 -->
-                  <div class="col-sm-12 "><!-- primeira coluna da linha -->
-                    <h4 class="text-center">Integral</h4>
-                  </div><!-- primeira coluna da linha -->
-                </div><!-- décima primeira linha da coluna 2 -->
 
-                <div class="row"><!-- décima segunda linha da coluna 2 -->
-                  <div class="col-sm-12"><!-- primeira coluna da linha -->
-                    <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
-                    <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Sistema Integral</div><!-- primeira coluna da linha -->
-                    <div id="barras_Integral_div" class="tamanhografico"></div>
+          <div class="row"><!-- décima primeira linha da coluna 2 -->
+            <div class="col-sm-12 "><!-- primeira coluna da linha -->
+              <h4 class="text-center">Integral</h4>
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima primeira linha da coluna 2 -->
 
-                  </div><!-- primeira coluna da linha -->
-                </div><!-- décima segunda linha da coluna 2 -->
+          <div class="row"><!-- décima segunda linha da coluna 2 -->
+            <div class="col-sm-12"><!-- primeira coluna da linha -->
+              <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
+              <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Sistema Integral</div><!-- primeira coluna da linha -->
+              <div id="grafico-integral" class="tamanhografico"></div>
 
-                <div class="row"><!-- décima terceira linha da coluna 2 -->
-                  <div class="col-sm-12"><!-- primeira coluna da linha -->
-                    <h4 class="text-center">Frente de Loja</h4>
-                  </div><!-- primeira coluna da linha -->
-                </div><!-- décima terceira linha da coluna 2 -->
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima segunda linha da coluna 2 -->
 
-                <div class="row"><!-- décima quarta linha da coluna 2 -->
-                  <div class="col-sm-12">
-                    <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
-                    <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Frente de Loja</div>
-                    <div id="barras_FrenteLoja_div" class="tamanhografico"></div>
-                  </div><!-- primeira coluna da linha -->
-                </div><!-- décima quarta linha da coluna 2 -->
+          <div class="row"><!-- décima terceira linha da coluna 2 -->
+            <div class="col-sm-12"><!-- primeira coluna da linha -->
+              <h4 class="text-center">Frente de Loja</h4>
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima terceira linha da coluna 2 -->
 
-                <div class="row"><!-- décima quinta linha da coluna 2 -->
-                  <div class="col-sm-12 "><!-- primeira coluna da linha -->
-                    <h4 class="text-center">Gestor</h4>
-                  </div><!-- primeira coluna da linha -->
-                </div><!-- décima quinta linha da coluna 2 -->
+          <div class="row"><!-- décima quarta linha da coluna 2 -->
+            <div class="col-sm-12">
+              <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
+              <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Frente de Loja</div>
+              <div id="grafico-frente-de-loja" class="tamanhografico"></div>
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima quarta linha da coluna 2 -->
 
-                <div class="row"><!-- décima sexta linha da coluna 2 -->
-                  <div class="col-sm-12"><!-- primeira coluna da linha -->
-                    <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
-                    <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Gestor</div>
-                    <div id="barras_gestor_div" class="tamanhografico"></div>
+          <div class="row"><!-- décima quinta linha da coluna 2 -->
+            <div class="col-sm-12 "><!-- primeira coluna da linha -->
+              <h4 class="text-center">Gestor</h4>
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima quinta linha da coluna 2 -->
 
-                  </div><!-- primeira coluna da linha -->
-                </div><!-- décima sexta linha da coluna 2 -->
+          <div class="row"><!-- décima sexta linha da coluna 2 -->
+            <div class="col-sm-12"><!-- primeira coluna da linha -->
+              <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
+              <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Gestor</div>
+              <div id="grafico-gestor" class="tamanhografico"></div>
+
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima sexta linha da coluna 2 -->
+
+          <div class="row"><!-- décima quinta linha da coluna 2 -->
+            <div class="col-sm-12 "><!-- primeira coluna da linha -->
+              <h4 class="text-center">Novo ERP</h4>
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima quinta linha da coluna 2 -->
+
+          <div class="row"><!-- décima sexta linha da coluna 2 -->
+            <div class="col-sm-12"><!-- primeira coluna da linha -->
+              <div class="text-left titulo1">Gráfico de Conhecimento</div><!-- primeira coluna da linha -->
+              <div class="text-left titulo2">Nível de Conhecimento do Colaborador nos Módulos do Novo ERP</div>
+              <div id="grafico-novo-erp" class="tamanhografico"></div>
+
+            </div><!-- primeira coluna da linha -->
+          </div><!-- décima sexta linha da coluna 2 -->
 
         </div><!--coluna 2 -->
       </div><!--linha 1 -->
@@ -427,51 +469,61 @@
     </div>
   </footer><!-- rodapé -->
 
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
   <script src="<?php echo BASE_URL; ?>libs/bootstrap-4.0.0/js/bootstrap.min.js"></script>
+
   <script type="text/javascript" src="<?php echo BASE_URL; ?>libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
   <script type="text/javascript" src="<?php echo BASE_URL; ?>libs/bootstrap-datepicker/locales/bootstrap-datepicker.pt-BR.min.js"></script>
   <script type="text/javascript" src="<?php echo BASE_URL; ?>public/js/bootstrap-datepicker/calendario.js"></script>
+  <script type="text/javascript" src="<?php echo BASE_URL; ?>public/js/profile/atualizacao_automatica.js"></script>
+
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
   <script type="text/javascript">
-
-      function define_cor(valor)
+      /*
+       * função que define a cor das barras do gráfico de acordo com o percentual de conhecimento
+       */
+      function defineCor(valor)
       {
             var cor;
-            if(valor<25)
-            {
+
+            if(valor < 25) {
+
               cor = 'color: #f66565';
+
+            } else if((valor < 50) && (valor >= 25)) {
+
+              cor = 'color: #ced04d';
+
+            } else {
+
+              cor = 'color: #009F45';
+
             }
-              else if((valor<50)&&(valor>=25))
-              {
-                cor = 'color: #ced04d';
-              }
-              else
-              {
-                cor = 'color: #009F45';
-              }
-              return cor;
+
+            return cor;
       }
 
       google.charts.load('current',{packages:["corechart"]});
       google.charts.setOnLoadCallback(drawIntegralChart);
-      google.charts.setOnLoadCallback(drawFrenteLojaChart);
+      google.charts.setOnLoadCallback(drawFrenteDeLojaChart);
       google.charts.setOnLoadCallback(drawGestorChart);
+      google.charts.setOnLoadCallback(drawNovoErpChart);
 
       function drawIntegralChart()
       {
         //montando o array com os dados
         var data = google.visualization.arrayToDataTable([
           ['Módulos',     'Percentual', {role: "style"}],
-          ['Materiais',   <?php echo $graficos['integral']['materiais']; ?>, define_cor(<?php echo $graficos['integral']['materiais']; ?>)],
-          ['Fiscal',      <?php echo $graficos['integral']['fiscal']; ?>,define_cor(<?php echo $graficos['integral']['fiscal']; ?>)],
-          ['Financeiro',  <?php echo $graficos['integral']['financeiro']; ?>,define_cor(<?php echo $graficos['integral']['financeiro']; ?>)],
-          ['Contábil',    <?php echo $graficos['integral']['contabil']; ?>,define_cor(<?php echo $graficos['integral']['contabil']; ?>)],
-          ['Cotação Web', <?php echo $graficos['integral']['cotacao']; ?>,define_cor(<?php echo $graficos['integral']['cotacao']; ?>)],
-          ['TNFE',        <?php echo $graficos['integral']['tnfe']; ?>,define_cor(<?php echo $graficos['integral']['tnfe']; ?>)],
-          ['WMS',         <?php echo $graficos['integral']['wms']; ?>,define_cor(<?php echo $graficos['integral']['wms']; ?>)],
+          ['Materiais',   <?php echo $graficos['integral']['materiais']; ?>,  defineCor(<?php echo $graficos['integral']['materiais']; ?>)],
+          ['Fiscal',      <?php echo $graficos['integral']['fiscal']; ?>,     defineCor(<?php echo $graficos['integral']['fiscal']; ?>)],
+          ['Financeiro',  <?php echo $graficos['integral']['financeiro']; ?>, defineCor(<?php echo $graficos['integral']['financeiro']; ?>)],
+          ['Contábil',    <?php echo $graficos['integral']['contabil']; ?>,   defineCor(<?php echo $graficos['integral']['contabil']; ?>)],
+          ['Cotação Web', <?php echo $graficos['integral']['cotacao']; ?>,    defineCor(<?php echo $graficos['integral']['cotacao']; ?>)],
+          ['TNFE',        <?php echo $graficos['integral']['tnfe']; ?>,       defineCor(<?php echo $graficos['integral']['tnfe']; ?>)],
+          ['WMS',         <?php echo $graficos['integral']['wms']; ?>,        defineCor(<?php echo $graficos['integral']['wms']; ?>)],
+          ['NFC-e',       <?php echo $graficos['integral']['nfce']; ?>,       defineCor(<?php echo $graficos['integral']['nfce']; ?>)]
         ]);
 
         //opções para o gráfico de barras
@@ -486,74 +538,159 @@
         };
 
         //instanciando e desenhando o gráfico de barras
-        var barras = new google.visualization.BarChart(document.getElementById('barras_Integral_div'));
-        barras.draw(data, options);
+        var barrasIntegralChart = new google.visualization.BarChart(document.getElementById('grafico-integral'));
+        barrasIntegralChart.draw(data, options);
       }
 
-      function drawFrenteLojaChart()
+      function drawFrenteDeLojaChart()
       {
-      //montando o array com os dados
-            var data = google.visualization.arrayToDataTable([
-              ['Módulos',         'Percentual', {role: "style"}],
-              ['Frente Windows',  <?php echo $graficos['frente_de_loja']['frente_windows']; ?>,define_cor(<?php echo $graficos['frente_de_loja']['frente_windows']; ?>)],
-              ['Frente Linux',    <?php echo $graficos['frente_de_loja']['frente_linux']; ?>,define_cor(<?php echo $graficos['frente_de_loja']['frente_linux']; ?>)],
-              ['Supervisor',      <?php echo $graficos['frente_de_loja']['supervisor']; ?>,define_cor(<?php echo $graficos['frente_de_loja']['supervisor']; ?>)],
-              ['Scanntech',       <?php echo $graficos['frente_de_loja']['scanntech']; ?>,define_cor(<?php echo $graficos['frente_de_loja']['scanntech']; ?>)],
-              ['Sitef',           <?php echo $graficos['frente_de_loja']['sitef']; ?>,define_cor(<?php echo $graficos['frente_de_loja']['sitef']; ?>)],
-              ['Comandas',        <?php echo $graficos['frente_de_loja']['comandas']; ?>,define_cor(<?php echo $graficos['frente_de_loja']['comandas']; ?>)]
+        //montando o array com os dados
+        var data = google.visualization.arrayToDataTable([
+          ['Módulos',         'Percentual', {role: "style"}],
+          ['Frente Windows', <?php echo $graficos['frente_de_loja']['frente_windows']; ?>, defineCor(<?php echo $graficos['frente_de_loja']['frente_windows']; ?>)],
+          ['Frente Linux',   <?php echo $graficos['frente_de_loja']['frente_linux']; ?>,   defineCor(<?php echo $graficos['frente_de_loja']['frente_linux']; ?>)],
+          ['Supervisor',     <?php echo $graficos['frente_de_loja']['supervisor']; ?>,     defineCor(<?php echo $graficos['frente_de_loja']['supervisor']; ?>)],
+          ['Scanntech',      <?php echo $graficos['frente_de_loja']['scanntech']; ?>,      defineCor(<?php echo $graficos['frente_de_loja']['scanntech']; ?>)],
+          ['Sitef',          <?php echo $graficos['frente_de_loja']['sitef']; ?>,          defineCor(<?php echo $graficos['frente_de_loja']['sitef']; ?>)],
+          ['Comandas',       <?php echo $graficos['frente_de_loja']['comandas']; ?>,       defineCor(<?php echo $graficos['frente_de_loja']['comandas']; ?>)],
+          ['NFC-e',          <?php echo $graficos['frente_de_loja']['nfce']; ?>,           defineCor(<?php echo $graficos['frente_de_loja']['nfce']; ?>)]
+        ]);
 
-            ]);
+        //opções para o gráfico de barras
+        var options = {
+            chartArea: {width: '70%', height:"80%"},
+            titleTextStyle:"#fff",
+            titleTextStyle:{color:'#fff'},
+            legend: { position:'bottom',textStyle: { color:'#fff' } },
+            hAxis:{ format: 'decimal',textStyle: { color: '#fff'},viewWindow: {min: 0,max: 100}},
+            vAxis: {title:'Módulos', titleTextStyle:{color:'fff'},textStyle: { color: '#fff'}},//legenda vertical
+            backgroundColor: '#151A20',
+            colors: ['#151A20'],
+        };
 
-            //opções para o gráfico de barras
-            var options = {
-                chartArea: {width: '70%', height:"80%"},
-                titleTextStyle:"#fff",
-                titleTextStyle:{color:'#fff'},
-                legend: { position:'bottom',textStyle: { color:'#fff' } },
-                hAxis:{ format: 'decimal',textStyle: { color: '#fff'},viewWindow: {min: 0,max: 100}},
-                vAxis: {title:'Módulos', titleTextStyle:{color:'fff'},textStyle: { color: '#fff'}},//legenda vertical
-                backgroundColor: '#151A20',
-                colors: ['#151A20'],
-            };
-
-            //instanciando e desenhando o gráfico de barras
-            var barrasfrenteloja = new google.visualization.BarChart(document.getElementById('barras_FrenteLoja_div'));
-            barrasfrenteloja.draw(data, options);
+        //instanciando e desenhando o gráfico de barras
+        var barrasFrenteDeLojaChart = new google.visualization.BarChart(document.getElementById('grafico-frente-de-loja'));
+        barrasFrenteDeLojaChart.draw(data, options);
       }
 
       function drawGestorChart()
       {
-      //montando o array com os dados
+        //montando o array com os dados
+        var data = google.visualization.arrayToDataTable([
+          ['Módulos',     'Percentual', {role: "style"}],
+          ['Instalação', <?php echo $graficos['gestor']['instalacao']; ?>, defineCor(<?php echo $graficos['gestor']['instalacao']; ?>)],
+          ['Cadastro',   <?php echo $graficos['gestor']['cadastro']; ?>,   defineCor(<?php echo $graficos['gestor']['cadastro']; ?>)],
+          ['Movimento',  <?php echo $graficos['gestor']['movimento']; ?>,  defineCor(<?php echo $graficos['gestor']['movimento']; ?>)],
+          ['Contábil',   <?php echo $graficos['gestor']['contabil']; ?>,   defineCor(<?php echo $graficos['gestor']['contabil']; ?>)],
+          ['Fiscal',     <?php echo $graficos['gestor']['fiscal']; ?>,     defineCor(<?php echo $graficos['gestor']['fiscal']; ?>)]
+        ]);
 
-            var data = google.visualization.arrayToDataTable([
-              ['Módulos',     'Percentual', {role: "style"}],
-              ['Instalação',  <?php echo $graficos['gestor']['instalacao']; ?>,define_cor(<?php echo $graficos['gestor']['instalacao']; ?>)],
-              ['Cadastro',    <?php echo $graficos['gestor']['cadastro']; ?>, define_cor(<?php echo $graficos['gestor']['cadastro']; ?>)],
-              ['Movimento',   <?php echo $graficos['gestor']['movimento']; ?>, define_cor(<?php echo $graficos['gestor']['movimento']; ?>)],
-              ['Contábil',    <?php echo $graficos['gestor']['contabil']; ?>, define_cor(<?php echo $graficos['gestor']['contabil']; ?>)],
-              ['Fiscal',      <?php echo $graficos['gestor']['fiscal']; ?>, define_cor(<?php echo $graficos['gestor']['fiscal']; ?>)]
-            ]);
+        //opções para o gráfico de barras
+        var options = {
+            chartArea: {width: '70%', height:"80%"},
+            titleTextStyle:{color:'#fff'},
+            legend: {position:'bottom', textStyle: { color:'#fff' } },
+            hAxis:{format: 'decimal',textStyle: { color: '#fff'},viewWindow: {min: 0,max: 100},},
+            vAxis: {title:'Módulos', titleTextStyle:{color:'fff'},textStyle: { color: '#fff'}},//legenda vertical
+            backgroundColor: '#151A20',
+            colors: ['#151A20'],
+        };
 
-            //opções para o gráfico de barras
-            var options = {
-                chartArea: {width: '70%', height:"80%"},
-                titleTextStyle:{color:'#fff'},
-                legend: {position:'bottom', textStyle: { color:'#fff' } },
-                hAxis:{format: 'decimal',textStyle: { color: '#fff'},viewWindow: {min: 0,max: 100},},
-                vAxis: {title:'Módulos', titleTextStyle:{color:'fff'},textStyle: { color: '#fff'}},//legenda vertical
-                backgroundColor: '#151A20',
-                colors: ['#151A20'],
-            };
+        //instanciando e desenhando o gráfico de barras
+        var barrasGestorChart = new google.visualization.BarChart(document.getElementById('grafico-gestor'));
+        barrasGestorChart.draw(data, options);
+      }
 
-            //instanciando e desenhando o gráfico de barras
-            var outros = new google.visualization.BarChart(document.getElementById('barras_gestor_div'));
-            outros.draw(data, options);
-    }
+      function drawNovoErpChart()
+      {
+        //montando o array com os dados
+        var data = google.visualization.arrayToDataTable([
+          ['Módulos',     'Percentual', {role: "style"}],
+          ['Instalação',   <?php echo $graficos['novo_erp']['instalacao']; ?>,              defineCor(<?php echo $graficos['novo_erp']['instalacao']; ?>)],
+          ['Pessoas',      <?php echo $graficos['novo_erp']['pessoas']; ?>,                 defineCor(<?php echo $graficos['novo_erp']['pessoas']; ?>)],
+          ['Produtos',     <?php echo $graficos['novo_erp']['produtos']; ?>,                defineCor(<?php echo $graficos['novo_erp']['produtos']; ?>)],
+          ['Fiscal',       <?php echo $graficos['novo_erp']['fiscal']; ?>,                  defineCor(<?php echo $graficos['novo_erp']['fiscal']; ?>)],
+          ['Financeiro',   <?php echo $graficos['novo_erp']['financeiro']; ?>,              defineCor(<?php echo $graficos['novo_erp']['financeiro']; ?>)],
+          ['Lançamentos',  <?php echo $graficos['novo_erp']['lancamentos']; ?>,             defineCor(<?php echo $graficos['novo_erp']['lancamentos']; ?>)],
+          ['Relat/Grafic', <?php echo $graficos['novo_erp']['relatorios_e_graficos']; ?>,   defineCor(<?php echo $graficos['novo_erp']['relatorios_e_graficos']; ?>)],
+          ['Imp/Exp',      <?php echo $graficos['novo_erp']['importacao_e_exportacao']; ?>, defineCor(<?php echo $graficos['novo_erp']['importacao_e_exportacao']; ?>)],
+          ['Config.PDV',   <?php echo $graficos['novo_erp']['configuracoes_pdv']; ?>,       defineCor(<?php echo $graficos['novo_erp']['configuracoes_pdv']; ?>)],
+          ['Minha Conta',  <?php echo $graficos['novo_erp']['minha_conta']; ?>,             defineCor(<?php echo $graficos['novo_erp']['minha_conta']; ?>)]
+        ]);
 
+        //opções para o gráfico de barras
+        var options = {
+            chartArea: {width: '70%', height:"80%"},
+            titleTextStyle:{color:'#fff'},
+            legend: {position:'bottom', textStyle: { color:'#fff' } },
+            hAxis:{format: 'decimal',textStyle: { color: '#fff'},viewWindow: {min: 0,max: 100},},
+            vAxis: {title:'Módulos', titleTextStyle:{color:'fff'},textStyle: { color: '#fff'}},//legenda vertical
+            backgroundColor: '#151A20',
+            colors: ['#151A20'],
+        };
+
+        //instanciando e desenhando o gráfico de barras
+        var barrasNovoErpChart = new google.visualization.BarChart(document.getElementById('grafico-novo-erp'));
+        barrasNovoErpChart.draw(data, options);
+      }
+
+    // ajustando tamanho do gráfico de acordo com o monitor
     $(window).resize(function(){
+
        yourCallingChartFunction();
+
     });
-    /* Gráfico do Gestor */
+  </script>
+
+  <script type="text/javascript">
+    $('document').ready(function() {
+
+      $('#questionario').click(function() {
+
+        <?php $id = $_SESSION['colaborador']['id']; ?>
+
+        var id    = <?php echo $id; ?>;
+        var data1 = $('#data1').val();
+        var data2 = $('#data2').val();
+
+        if (id != '' && data1 != '' && data2 != '') {
+
+          // requisição AJAX
+          $.ajax({
+            type: 'post',
+            url: '../../../app/requests/ajax/busca_ids.php?id=' + id + '&data1=' + data1 + '&data2=' + data2,
+            dataType: 'json',
+            success: function(resposta) {
+
+              if (resposta != '') {
+
+                // exibindo ids não preenchidos
+                alert(resposta);
+
+              } else {
+
+                alert('Não existem questionários pendentes!');
+
+              }
+
+            },
+            error: function(resposta) {
+
+              console.log(resposta);
+
+            }
+          });
+
+        } else {
+
+          // exibindo no console
+          console.log('Não foi possível recuperar id, data1 ou data2!');
+
+        }
+
+      });
+
+    });
   </script>
 </body>
 </html>

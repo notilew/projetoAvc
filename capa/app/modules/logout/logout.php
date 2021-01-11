@@ -3,14 +3,22 @@
 # importando script de inicialização
 require '../../../init.php';
 
-# abrindo sessão
-session_start();
+# verificando se existe sessão aberta
+if (! isset($_SESSION))
+  session_start();
 
 # alterando o índice para falso
-$_SESSION['logado'] = false;
+$_SESSION['usuario']['logado'] = false;
 
 # finalizando sessões abertas
-session_destroy();
+unset (
+  $_SESSION['colaboradores'],
+  $_SESSION['colaborador'],
+  $_SESSION['navegador'],
+  $_SESSION['mensagens'],
+  $_SESSION['usuario'],
+  $_SESSION['avancoins']
+);
 
 # redirecionando
-header('Location: ' . BASE_URL . 'public/views/login/form-login.php');
+header ('Location: ' . BASE_URL . '../capa/public/home.php');
